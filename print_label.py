@@ -19,9 +19,25 @@ import qrcode
 import yaml
 from PIL import Image, ImageDraw, ImageFont
 
+def resource_path(relative: str) -> Path:
+    import sys
+    if getattr(sys, 'frozen', False):
+        # Running as exe, look next to the exe
+        base = Path(sys.executable).parent
+    else:
+        # Running as script
+        base = Path(__file__).parent
+    return base / relative
 
-BROTHER_QL = r"C:\Users\fs\AppData\Local\Python\pythoncore-3.14-64\Scripts\brother_ql.exe"
-CONFIG_PATH = Path(__file__).parent / "label_config.yaml"
+def get_brother_ql_path() -> str:
+    import sys
+    if getattr(sys, 'frozen', False):
+        return str(Path(sys.executable).parent / "brother_ql.exe")
+    return r"C:\Users\fs\AppData\Local\Python\pythoncore-3.14-64\Scripts\brother_ql.exe"
+
+BROTHER_QL = get_brother_ql_path()
+
+CONFIG_PATH = resource_path("label_config.yaml")
 QR_BASE_URL = "https://qr.myestino.de/edge/"
 
 
@@ -85,7 +101,7 @@ def build_label(serial: str, part: str, config: dict) -> Image.Image:
     url = QR_BASE_URL + serial
 
     # Load template (PDF or PNG)
-    template_path = Path(__file__).parent / cfg["template"]["path"]
+    template_path = resource_path(cfg["template"]["path"])
     if template_path.suffix.lower() == ".pdf":
         doc = fitz.open(template_path)
         page = doc[0]
@@ -157,7 +173,7 @@ def send_to_printer(output_path: Path, config: dict, printer_uri: str) -> tuple[
         str(output_path),
     ]
     result = subprocess.run(cmd, capture_output=True, text=True)
-    return result.returncode == 0, result.stderr
+    return result.returncode == 0, result.stdout + result.stderr
 
 
 # ── CLI entry point ───────────────────────────────────────────────────────────
@@ -173,7 +189,7 @@ def main():
     config = load_config()
     label = build_label(args.serial, args.part, config)
 
-    output_path = Path(__file__).parent / config["output"]["path"]
+    output_path = Path.home() / "AppData" / "Local" / "Temp" / "label_output.png"
     label.save(output_path)
     print(f"Label saved to {output_path}")
 

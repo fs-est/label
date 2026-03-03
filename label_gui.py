@@ -25,6 +25,17 @@ class LabelPrinterApp(tk.Tk):
         self.printer_uri = None
         self.preview_image = None
         self._preview_job = None
+        # Check required files exist
+        from print_label import resource_path
+        missing = [f for f in ["label_config.yaml", "label_template.pdf"]
+                if not resource_path(f).exists()]
+        if missing:
+            import tkinter.messagebox as mb
+            mb.showerror("Missing files",
+                        f"Could not find:\n" + "\n".join(
+                            str(resource_path(f)) for f in missing))
+            self.destroy()
+            return
         self._build_ui()
         self._discover_printer()
 
@@ -182,7 +193,7 @@ class LabelPrinterApp(tk.Tk):
         def run():
             try:
                 img = build_label(serial, part, self.config_data)
-                output_path = Path(__file__).parent / self.config_data["output"]["path"]
+                output_path = Path.home() / "AppData" / "Local" / "Temp" / "label_output.png"
                 img.save(output_path)
                 success, err = send_to_printer(output_path, self.config_data, self.printer_uri)
                 if success:

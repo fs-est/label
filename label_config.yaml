@@ -1,0 +1,40 @@
+# Label configuration
+# All positions are in pixels at 300dpi
+# Label size: 62mm x 80mm = 732px x 939px (height x width)
+# The label prints in landscape, rotated 90 degrees on the 62mm roll
+
+label:
+  width_px: 1282
+  height_px: 1000
+  dpi: 300
+  roll_width_mm: 62
+  rotate_for_print: 90  # degrees to rotate before sending to printer
+
+template:
+  # path: "label_template.png"  # place your template PNG next to this config
+  path: "label_template.pdf" # use PDF template for better quality
+
+font:
+  label:
+    path: "C:/Users/fs/AppData/Local/Microsoft/Windows/Fonts/InterDisplay-Light.ttf"
+    size: 48
+  value:
+    path: "C:/Users/fs/AppData/Local/Microsoft/Windows/Fonts/InterDisplay-Bold.ttf"
+    size: 60
+
+elements:
+  qr_code:
+    x: 720
+    y: 80
+    size: 480  # width and height in pixels (30mm at 300dpi)
+  part_number:
+    x: 80
+    y: 240
+    label: "Part No.\n"
+  serial_number:
+    x: 80
+    y: 80
+    label: "Serial No.\n"
+
+output:
+  path: "label_output.png"

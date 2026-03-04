@@ -4,9 +4,21 @@
 a = Analysis(
     ['label_gui.py'],
     pathex=[],
-    binaries=[],
-    datas=[],
-    hiddenimports=[],
+    binaries=[
+        ('brother_ql.exe', '.'),
+    ],
+    datas=[
+        ('label_config.yaml', '.'),
+        ('label_template.pdf', '.'),
+        ('fonts/InterDisplay-Light.ttf', 'fonts'),
+        ('fonts/InterDisplay-Bold.ttf', 'fonts'),
+    ],
+    hiddenimports=[
+        'usb',
+        'usb.core',
+        'usb.backend.libusb1',
+        'usb.backend.libusb0',
+    ],
     hookspath=[],
     hooksconfig={},
     runtime_hooks=[],

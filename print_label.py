@@ -12,6 +12,7 @@ Requires:
 
 import argparse
 import subprocess
+import tempfile
 from pathlib import Path
 
 import pymupdf as fitz
@@ -30,10 +31,15 @@ def resource_path(relative: str) -> Path:
     return base / relative
 
 def get_brother_ql_path() -> str:
-    import sys
+    import sys, shutil
     if getattr(sys, 'frozen', False):
         return str(Path(sys.executable).parent / "brother_ql.exe")
-    return r"C:\Users\fs\AppData\Local\Python\pythoncore-3.14-64\Scripts\brother_ql.exe"
+    found = shutil.which("brother_ql")
+    if found:
+        return found
+    raise FileNotFoundError(
+        "brother_ql not found on PATH. Install with: pip install brother_ql"
+    )
 
 BROTHER_QL = get_brother_ql_path()
 
@@ -122,9 +128,9 @@ def build_label(serial: str, part: str, config: dict) -> Image.Image:
     # Load fonts
     try:
         font_label = ImageFont.truetype(
-            cfg["font"]["label"]["path"], cfg["font"]["label"]["size"])
+            str(resource_path(cfg["font"]["label"]["path"])), cfg["font"]["label"]["size"])
         font_value = ImageFont.truetype(
-            cfg["font"]["value"]["path"], cfg["font"]["value"]["size"])
+            str(resource_path(cfg["font"]["value"]["path"])), cfg["font"]["value"]["size"])
     except IOError as e:
         print(f"Warning: font error ({e}), falling back to default.")
         font_label = ImageFont.load_default()
@@ -189,7 +195,7 @@ def main():
     config = load_config()
     label = build_label(args.serial, args.part, config)
 
-    output_path = Path.home() / "AppData" / "Local" / "Temp" / "label_output.png"
+    output_path = Path(tempfile.gettempdir()) / "label_output.png"
     label.save(output_path)
     print(f"Label saved to {output_path}")
 

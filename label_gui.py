@@ -4,6 +4,7 @@ Run with: python label_gui.py
 """
 
 import sys
+import tempfile
 import threading
 from pathlib import Path
 
@@ -193,7 +194,7 @@ class LabelPrinterApp(tk.Tk):
         def run():
             try:
                 img = build_label(serial, part, self.config_data)
-                output_path = Path.home() / "AppData" / "Local" / "Temp" / "label_output.png"
+                output_path = Path(tempfile.gettempdir()) / "label_output.png"
                 img.save(output_path)
                 success, err = send_to_printer(output_path, self.config_data, self.printer_uri)
                 if success:

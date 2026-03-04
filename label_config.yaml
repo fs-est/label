@@ -16,10 +16,10 @@ template:
 
 font:
   label:
-    path: "C:/Users/fs/AppData/Local/Microsoft/Windows/Fonts/InterDisplay-Light.ttf"
+    path: "fonts/InterDisplay-Light.ttf"
     size: 48
   value:
-    path: "C:/Users/fs/AppData/Local/Microsoft/Windows/Fonts/InterDisplay-Bold.ttf"
+    path: "fonts/InterDisplay-Bold.ttf"
     size: 60
 
 elements:

@@ -7,12 +7,7 @@ a = Analysis(
     binaries=[
         ('brother_ql.exe', '.'),
     ],
-    datas=[
-        ('label_config.yaml', '.'),
-        ('label_template.pdf', '.'),
-        ('fonts/InterDisplay-Light.ttf', 'fonts'),
-        ('fonts/InterDisplay-Bold.ttf', 'fonts'),
-    ],
+    datas=[],
     hiddenimports=[
         'usb',
         'usb.core',

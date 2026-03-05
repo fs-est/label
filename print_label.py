@@ -11,7 +11,6 @@ Requires:
 """
 
 import argparse
-import subprocess
 import tempfile
 from pathlib import Path
 
@@ -19,6 +18,9 @@ import pymupdf as fitz
 import qrcode
 import yaml
 from PIL import Image, ImageDraw, ImageFont
+from brother_ql.raster import BrotherQLRaster
+from brother_ql.conversion import convert as ql_convert
+from brother_ql.backends.helpers import send as ql_send
 
 def resource_path(relative: str) -> Path:
     import sys
@@ -29,19 +31,6 @@ def resource_path(relative: str) -> Path:
         # Running as script
         base = Path(__file__).parent
     return base / relative
-
-def get_brother_ql_path() -> str:
-    import sys, shutil
-    if getattr(sys, 'frozen', False):
-        return str(Path(sys.executable).parent / "brother_ql.exe")
-    found = shutil.which("brother_ql")
-    if found:
-        return found
-    raise FileNotFoundError(
-        "brother_ql not found on PATH. Install with: pip install brother_ql"
-    )
-
-BROTHER_QL = get_brother_ql_path()
 
 CONFIG_PATH = resource_path("label_config.yaml")
 QR_BASE_URL = "https://qr.myestino.de/edge/"
@@ -167,19 +156,18 @@ def build_label(serial: str, part: str, config: dict) -> Image.Image:
 
 def send_to_printer(output_path: Path, config: dict, printer_uri: str) -> tuple[bool, str]:
     """Send a PNG to the printer. Returns (success, error_message)."""
-    roll_width = config["label"]["roll_width_mm"]
-    cmd = [
-        BROTHER_QL,
-        "-b", "pyusb",
-        "-m", "QL-800",
-        "-p", printer_uri,
-        "print",
-        "-l", str(roll_width),
-        "--600dpi",
-        str(output_path),
-    ]
-    result = subprocess.run(cmd, capture_output=True, text=True)
-    return result.returncode == 0, result.stdout + result.stderr
+    try:
+        roll_width = str(config["label"]["roll_width_mm"])
+        qlr = BrotherQLRaster('QL-800')
+        qlr.exception_on_warning = True
+        ql_convert(qlr=qlr, images=[str(output_path)], label=roll_width,
+                   cut=True, dpi_600=True, hq=True)
+        result = ql_send(instructions=qlr.data, printer_identifier=printer_uri,
+                         backend_identifier='pyusb', blocking=True)
+        success = result.get('did_print', False)
+        return success, '' if success else result.get('outcome', 'unknown error')
+    except Exception as e:
+        return False, str(e)
 
 
 # ── CLI entry point ───────────────────────────────────────────────────────────
